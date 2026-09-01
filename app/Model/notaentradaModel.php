@@ -108,7 +108,8 @@ class NotaentradaModel {
      */
     public function obtenerNotaEntradaPorId($id) {
         try {
-            $stmt = $this->db->prepare("\n                SELECT 
+            $stmt = $this->db->prepare("
+                SELECT 
                     n.id_nota_entrada, 
                     n.fecha_ingreso, 
                     n.descripcion,
@@ -121,12 +122,14 @@ class NotaentradaModel {
                 LEFT JOIN proveedor p ON n.id_proveedor = p.id_proveedor
                 LEFT JOIN usuario u ON n.id_usuario = u.id_usuario
                 LEFT JOIN persona pe ON u.id_persona = pe.id_persona
-                WHERE n.id_nota_entrada = :id\n            ");
+                WHERE n.id_nota_entrada = :id
+            ");
             $stmt->execute([':id' => $id]);
             $nota = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($nota) {
-                $stmtDet = $this->db->prepare("\n                    SELECT 
+                $stmtDet = $this->db->prepare("
+                    SELECT 
                         d.id_detalle_entrada,
                         d.id_producto,
                         d.cantidad,
@@ -134,7 +137,8 @@ class NotaentradaModel {
                         p.descripcion as nombre_producto
                     FROM detalle_entrada d 
                     JOIN producto p ON d.id_producto = p.id_producto 
-                    WHERE d.id_nota_entrada = :id\n                ");
+                    WHERE d.id_nota_entrada = :id
+                ");
                 $stmtDet->execute([':id' => $id]);
                 $nota['detalles'] = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
             }
@@ -155,7 +159,8 @@ class NotaentradaModel {
                 $costoTotal += $d['cantidad'] * $d['costo_unitario'];
             }
 
-            $stmt = $this->db->prepare("\n                INSERT INTO nota_de_entrada (
+            $stmt = $this->db->prepare("
+                INSERT INTO nota_de_entrada (
                     fecha_ingreso, 
                     id_proveedor, 
                     id_usuario, 
@@ -167,7 +172,8 @@ class NotaentradaModel {
                     :id_usuario, 
                     :descripcion, 
                     :costo_total
-                )\n            ");
+                )
+            ");
             $stmt->execute([
                 ':fecha_ingreso' => $datos['fecha_ingreso'],
                 ':id_proveedor' => $datos['id_proveedor'],
@@ -177,7 +183,8 @@ class NotaentradaModel {
             ]);
             $idNota = (int) $this->db->lastInsertId();
 
-            $stmtDet = $this->db->prepare("\n                INSERT INTO detalle_entrada (
+            $stmtDet = $this->db->prepare("
+                INSERT INTO detalle_entrada (
                     id_nota_entrada, 
                     id_producto, 
                     cantidad, 
@@ -187,9 +194,12 @@ class NotaentradaModel {
                     :id_producto, 
                     :cantidad, 
                     :costo_unitario
-                )\n            ");
+                )
+            ");
             
-            $stmtStock = $this->db->prepare("\n                UPDATE producto SET cantidad = cantidad + :cantidad WHERE id_producto = :id_producto\n            ");
+            $stmtStock = $this->db->prepare("
+                UPDATE producto SET cantidad = cantidad + :cantidad WHERE id_producto = :id_producto
+            ");
 
             foreach ($detalles as $d) {
                 $stmtDet->execute([
@@ -220,7 +230,9 @@ class NotaentradaModel {
         $this->db->beginTransaction();
         try {
             // 1. Obtener detalles para revertir stock
-            $stmtDet = $this->db->prepare("\n                SELECT id_producto, cantidad FROM detalle_entrada WHERE id_nota_entrada = :id\n            ");
+            $stmtDet = $this->db->prepare("
+                SELECT id_producto, cantidad FROM detalle_entrada WHERE id_nota_entrada = :id
+            ");
             $stmtDet->execute([':id' => $id]);
             $detalles = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
 
@@ -229,7 +241,9 @@ class NotaentradaModel {
             }
 
             // 2. Revertir stock (restar)
-            $stmtStock = $this->db->prepare("\n                UPDATE producto SET cantidad = cantidad - :cantidad WHERE id_producto = :id_producto\n            ");
+            $stmtStock = $this->db->prepare("
+                UPDATE producto SET cantidad = cantidad - :cantidad WHERE id_producto = :id_producto
+            ");
             foreach ($detalles as $d) {
                 $stmtStock->execute([
                     ':cantidad' => $d['cantidad'],
@@ -303,4 +317,3 @@ class NotaentradaModel {
         }
     }
 }
-?>

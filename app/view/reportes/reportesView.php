@@ -19,6 +19,12 @@ try {
     // Si no se pueden obtener, se deja vacío
 }
 
+// Pasar variables al partial
+$por_pagina = $porPaginaActual;
+$pagina_actual = $paginaActual;
+$totalRegistros = $totalRegistros;
+$totalPaginas = $totalPaginas;
+
 // Incluir header del sistema
 require_once dirname(__DIR__, 2) . "/view/header.php";
 ?>
@@ -43,44 +49,33 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
     </div>
 
     <!-- ========================================== -->
-    <!-- FILTROS - ESTILO IGUAL A PRODUCTOS -->
+    <!-- FILTROS -->
     <!-- ========================================== -->
     <div class="card shadow-sm p-3 mb-4 bg-white">
         <form method="GET" id="formFiltros" class="row g-3 align-items-end">
             <input type="hidden" name="url" value="reportes">
             
-            <!-- Mostrar -->
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-dark">Mostrar</label>
-                <select name="por_pagina" class="form-select form-select-sm" onchange="document.getElementById('formFiltros').submit();">
-                    <option value="10" <?= ($porPaginaActual == 10) ? 'selected' : '' ?>>10</option>
-                    <option value="20" <?= ($porPaginaActual == 20) ? 'selected' : '' ?>>20</option>
-                    <option value="30" <?= ($porPaginaActual == 30) ? 'selected' : '' ?>>30</option>
-                    <option value="50" <?= ($porPaginaActual == 50) ? 'selected' : '' ?>>50</option>
-                    <option value="100" <?= ($porPaginaActual == 100) ? 'selected' : '' ?>>100</option>
-                    <option value="150" <?= ($porPaginaActual == 150) ? 'selected' : '' ?>>150</option>
-                    <option value="200" <?= ($porPaginaActual == 200) ? 'selected' : '' ?>>200</option>
-                </select>
+                <?php require_once __DIR__ . '/../partials/por_pagina_selector.php'; ?>
             </div>
 
-            <!-- Fecha Única -->
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-dark">Fecha</label>
                 <input type="date" name="fecha" class="form-control form-control-sm" 
                        value="<?= isset($_GET['fecha']) ? htmlspecialchars($_GET['fecha']) : '' ?>">
             </div>
 
-            <!-- Tipo de Movimiento -->
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-dark">Tipo</label>
                 <select name="tipo_movimiento" class="form-select form-select-sm">
                     <option value="">Todos</option>
                     <option value="Entrada" <?= (isset($_GET['tipo_movimiento']) && $_GET['tipo_movimiento'] == 'Entrada') ? 'selected' : '' ?>>Entradas</option>
                     <option value="Salida" <?= (isset($_GET['tipo_movimiento']) && $_GET['tipo_movimiento'] == 'Salida') ? 'selected' : '' ?>>Salidas</option>
+                    <option value="Anulación" <?= (isset($_GET['tipo_movimiento']) && $_GET['tipo_movimiento'] == 'Anulación') ? 'selected' : '' ?>>Anulaciones</option>
                 </select>
             </div>
 
-            <!-- Categoría -->
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-dark">Categoría</label>
                 <select name="id_categoria" class="form-select form-select-sm">
@@ -94,7 +89,6 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
                 </select>
             </div>
 
-            <!-- Producto -->
             <div class="col-md-2">
                 <label class="form-label fw-bold small text-dark">Producto</label>
                 <input type="text" name="busqueda" class="form-control form-control-sm" 
@@ -102,7 +96,6 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
                        value="<?= isset($_GET['busqueda']) ? htmlspecialchars($_GET['busqueda']) : '' ?>">
             </div>
 
-            <!-- Botones -->
             <div class="col-md-2">
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-gold btn-sm fw-bold">
@@ -153,25 +146,13 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
     </div>
 
     <!-- ========================================== -->
-    <!-- TABLA - CABECERA OSCURA -->
+    <!-- TABLA CON BOTÓN "VER MOTIVO" -->
     <!-- ========================================== -->
     <div class="dark-card card shadow-sm dark-table-header">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h5 class="m-0">
                 <i class="fas fa-history me-2"></i> Historial de Movimientos
             </h5>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small me-2">Mostrar:</span>
-                <select name="por_pagina" class="form-select form-select-sm" style="width: auto;" onchange="document.getElementById('formFiltros').submit();">
-                    <option value="10" <?= ($porPaginaActual == 10) ? 'selected' : '' ?>>10</option>
-                    <option value="20" <?= ($porPaginaActual == 20) ? 'selected' : '' ?>>20</option>
-                    <option value="30" <?= ($porPaginaActual == 30) ? 'selected' : '' ?>>30</option>
-                    <option value="50" <?= ($porPaginaActual == 50) ? 'selected' : '' ?>>50</option>
-                    <option value="100" <?= ($porPaginaActual == 100) ? 'selected' : '' ?>>100</option>
-                    <option value="150" <?= ($porPaginaActual == 150) ? 'selected' : '' ?>>150</option>
-                    <option value="200" <?= ($porPaginaActual == 200) ? 'selected' : '' ?>>200</option>
-                </select>
-            </div>
         </div>
         
         <div class="table-responsive">
@@ -179,45 +160,74 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
                 <thead>
                     <tr>
                         <th class="ps-4 py-3">PRODUCTO</th>
+                        <th class="py-3">CATEGORÍA</th>
                         <th class="py-3">TIPO</th>
                         <th class="py-3">CANTIDAD</th>
                         <th class="py-3">COSTO</th>
                         <th class="py-3">FECHA</th>
-                        <th class="pe-4 py-3">RESPONSABLE</th>
+                        <th class="py-3">RESPONSABLE</th>
+                        <th class="pe-4 py-3 text-center">ACCIÓN</th>  <!-- 🔥 NUEVA COLUMNA -->
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($movimientos)): ?>
                         <?php foreach ($movimientos as $movimiento): 
                             $esEntrada = ($movimiento['tipo_movimiento'] === 'Entrada');
-                            $signo = $esEntrada ? '+' : '-';
-                            $colorClass = $esEntrada ? 'text-success' : 'text-danger';
-                            $badgeClass = $esEntrada ? 'badge bg-success' : 'badge bg-danger';
+                            $esSalida = ($movimiento['tipo_movimiento'] === 'Salida');
+                            $esAnulacion = ($movimiento['tipo_movimiento'] === 'Anulación');
+                            
+                            $signo = $esEntrada ? '+' : ($esAnulacion ? '↺' : '-');
+                            $colorClass = $esEntrada ? 'text-success' : ($esAnulacion ? 'text-secondary' : 'text-danger');
+                            $badgeClass = $esEntrada ? 'badge bg-success' : ($esAnulacion ? 'badge bg-secondary' : 'badge bg-danger');
+                            
                             $fechaObj = new DateTime($movimiento['fecha_movimiento']);
                             $fechaFormateada = $fechaObj->format('d/m/Y');
                             $costo = isset($movimiento['costo_proveedor']) ? $movimiento['costo_proveedor'] : 0;
+                            $motivo = isset($movimiento['motivo_anulacion']) && !empty($movimiento['motivo_anulacion']) ? $movimiento['motivo_anulacion'] : '';
                         ?>
                             <tr>
                                 <td class="ps-4 fw-medium"><?= htmlspecialchars($movimiento['nombre_producto']) ?></td>
                                 <td>
+                                    <span class="badge" style="background: #e9ecef; color: #1a1a2e; padding: 4px 12px; border-radius: 50px; font-weight: 600;">
+                                        <?= htmlspecialchars($movimiento['categoria'] ?? 'Sin categoría') ?>
+                                    </span>
+                                </td>
+                                <td>
                                     <span class="badge <?= $badgeClass ?>">
-                                        <?= $esEntrada ? '<i class="fas fa-arrow-down me-1"></i>' : '<i class="fas fa-arrow-up me-1"></i>' ?>
+                                        <?= $esEntrada ? '<i class="fas fa-arrow-down me-1"></i>' : ($esAnulacion ? '<i class="fas fa-ban me-1"></i>' : '<i class="fas fa-arrow-up me-1"></i>') ?>
                                         <?= htmlspecialchars($movimiento['tipo_movimiento']) ?>
                                     </span>
                                 </td>
                                 <td class="<?= $colorClass ?> fw-bold">
-                                    <?= $signo ?> <?= htmlspecialchars($movimiento['cantidad']) ?> unidades
+                                    <?= $signo ?> <?= htmlspecialchars(abs($movimiento['cantidad'])) ?> unidades
                                 </td>
                                 <td>
-                                    <?= $esEntrada ? '$' . number_format($costo, 2) : '-' ?>
+                                    <?= ($esEntrada || $esAnulacion) ? '$' . number_format($costo, 2) : '-' ?>
                                 </td>
                                 <td><?= $fechaFormateada ?></td>
-                                <td class="pe-4"><?= htmlspecialchars($movimiento['usuario_activo']) ?></td>
+                                <td><?= htmlspecialchars($movimiento['usuario_activo']) ?></td>
+                                <td class="pe-4 text-center">
+                                    <?php if ($esAnulacion && !empty($motivo)): ?>
+                                        <!-- 🔥 BOTÓN VER MOTIVO (solo para anulaciones) -->
+                                        <button type="button" class="btn btn-sm btn-outline-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalMotivo"
+                                                data-motivo="<?= htmlspecialchars($motivo) ?>"
+                                                data-producto="<?= htmlspecialchars($movimiento['nombre_producto']) ?>"
+                                                data-usuario="<?= htmlspecialchars($movimiento['usuario_activo']) ?>"
+                                                data-fecha="<?= $fechaFormateada ?>"
+                                                title="Ver motivo de anulación">
+                                            <i class="fas fa-eye"></i> Ver Motivo
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-muted">—</span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center py-5 dark-empty">
+                            <td colspan="8" class="text-center py-5 dark-empty">
                                 <div class="py-4">
                                     <i class="fas fa-box-open fa-3x d-block mb-3"></i>
                                     <p class="mb-0">No hay movimientos registrados</p>
@@ -230,48 +240,74 @@ require_once dirname(__DIR__, 2) . "/view/header.php";
             </table>
         </div>
         
-        <!-- Footer con paginación -->
+        <!-- Paginación -->
         <div class="card-footer py-3 d-flex justify-content-between align-items-center">
             <span class="text-muted small">
                 <i class="fas fa-history me-1"></i> 
                 Total: <?= $totalRegistros ?> movimientos
             </span>
-            <?php if ($totalPaginas > 1): ?>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <?php 
-                    $queryStr = $_GET;
-                    $queryStr['pagina'] = max(1, $paginaActual - 1);
-                    $prevUrl = "?" . http_build_query($queryStr);
-                    ?>
-                    <li class="page-item <?= ($paginaActual <= 1) ? 'disabled' : '' ?>">
-                        <a class="page-link text-dark" href="<?= $prevUrl ?>">Anterior</a>
-                    </li>
-                    
-                    <?php for($i = 1; $i <= $totalPaginas; $i++): 
-                        $queryStr['pagina'] = $i;
-                        $pageUrl = "?" . http_build_query($queryStr);
-                    ?>
-                        <li class="page-item <?= ($i == $paginaActual) ? 'active' : '' ?>">
-                            <a class="page-link <?= ($i == $paginaActual) ? 'bg-dark text-white border-dark' : 'text-dark' ?>" href="<?= $pageUrl ?>">
-                                <?= $i ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
-                    
-                    <?php 
-                    $queryStr['pagina'] = min($totalPaginas, $paginaActual + 1);
-                    $nextUrl = "?" . http_build_query($queryStr);
-                    ?>
-                    <li class="page-item <?= ($paginaActual >= $totalPaginas) ? 'disabled' : '' ?>">
-                        <a class="page-link text-dark" href="<?= $nextUrl ?>">Siguiente</a>
-                    </li>
-                </ul>
-            </nav>
-            <?php endif; ?>
+            <?php require_once __DIR__ . '/../partials/por_pagina_selector.php'; ?>
         </div>
     </div>
 
 </div>
+
+<!-- ========================================== -->
+<!-- MODAL PARA VER MOTIVO DE ANULACIÓN -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalMotivo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #dc3545; color: #fff;">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban me-2"></i> Motivo de Anulación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="fw-bold text-dark">Producto:</label>
+                    <p id="modalProducto" class="border-bottom pb-2 text-dark"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold text-dark">Usuario Responsable:</label>
+                    <p id="modalUsuario" class="border-bottom pb-2 text-dark"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold text-dark">Fecha de Anulación:</label>
+                    <p id="modalFecha" class="border-bottom pb-2 text-dark"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold text-dark">Motivo:</label>
+                    <div id="modalMotivoTexto" class="p-3 bg-light rounded border" style="white-space: pre-wrap; color: #000;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal de motivo de anulación
+    const modalMotivo = document.getElementById('modalMotivo');
+    if (modalMotivo) {
+        modalMotivo.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const motivo = button.getAttribute('data-motivo');
+            const producto = button.getAttribute('data-producto');
+            const usuario = button.getAttribute('data-usuario');
+            const fecha = button.getAttribute('data-fecha');
+            
+            document.getElementById('modalProducto').textContent = producto || 'N/A';
+            document.getElementById('modalUsuario').textContent = usuario || 'N/A';
+            document.getElementById('modalFecha').textContent = fecha || 'N/A';
+            document.getElementById('modalMotivoTexto').textContent = motivo || 'No se especificó motivo.';
+        });
+    }
+});
+</script>
 
 <?php require_once dirname(__DIR__, 2) . "/view/footer.php"; ?>
